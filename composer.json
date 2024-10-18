@@ -1,0 +1,7 @@
+{
+    "name": "lumax/form-component",
+    "description": "The form component for the Luma framework",
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    }
+}
