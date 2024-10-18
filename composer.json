@@ -1,7 +1,12 @@
 {
     "name": "lumax/form-component",
     "description": "The form component for the Luma framework",
+    "autoload": {
+        "psr-4": {
+            "Luma\\FormComponent\\": "src/"
+        }
+    },
     "require-dev": {
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "^11.4"
     }
 }
