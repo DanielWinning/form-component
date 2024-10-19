@@ -4,5 +4,5 @@ namespace Luma\FormComponent\Form\Interface;
 
 interface FormFieldInterface
 {
-
+    public function getName(): string;
 }
