@@ -20,6 +20,6 @@
     },
     "license": "GPL-3.0-or-later",
     "require": {
-        "lumax/framework-component": "^1.6"
+        "latte/latte": "^3.0"
     }
 }
