@@ -2,17 +2,25 @@
 
 namespace Luma\FormComponent\Form;
 
+use Latte\Engine;
 use Luma\FormComponent\Form\Interface\FormInterface;
 
-class AbstractForm implements FormInterface
+abstract class AbstractForm implements FormInterface
 {
-    protected string $name;
+    protected Engine $templateEngine;
+
+    public function __construct()
+    {
+        $this->templateEngine = new Engine();
+    }
 
     /**
      * @return string
      */
-    public function getName(): string
+    public function render(): string
     {
-        return $this->name;
+        $formTemplate = sprintf('%s/views/form.latte', dirname(__DIR__, 2));
+
+        return $this->templateEngine->renderToString($formTemplate);
     }
 }

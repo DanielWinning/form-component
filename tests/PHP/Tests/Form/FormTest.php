@@ -15,8 +15,6 @@ class FormTest extends TestCase
 
     public function testGetters(): void
     {
-        $form = new TestForm();
-
-        self::assertEquals('test-form', $form->getName());
+        self::assertIsString((new TestForm())->render());
     }
 }
