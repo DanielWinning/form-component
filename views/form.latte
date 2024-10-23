@@ -1,3 +1,5 @@
 <form>
-
+    {foreach $form->getFormFields() as $field}
+        {$field->getHtml()}
+    {/foreach}
 </form>

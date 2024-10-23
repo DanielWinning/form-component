@@ -24,7 +24,9 @@ abstract class AbstractForm implements FormInterface
     {
         $formTemplate = sprintf('%s/views/form.latte', dirname(__DIR__, 2));
 
-        return $this->templateEngine->renderToString($formTemplate);
+        return $this->templateEngine->renderToString($formTemplate, [
+            'form' => $this,
+        ]);
     }
 
     abstract protected function build(): void;
