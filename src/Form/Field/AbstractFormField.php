@@ -9,8 +9,19 @@ use Luma\FormComponent\Form\Interface\FormFieldInterface;
 
 abstract class AbstractFormField implements FormFieldInterface
 {
-    private array $requiredOptions = ['id', 'label', 'name'];
-    private array $validOptions = ['classes', 'id', 'label', 'name'];
+    private array $requiredOptions = [
+        'id' => 'string',
+        'label' => 'string',
+        'name' => 'string',
+    ];
+    private array $validOptions = [
+        'classes' => 'string',
+        'id' => 'string',
+        'label' => 'string',
+        'name' => 'string',
+        'required' => 'boolean',
+        'maxLength' => 'integer',
+    ];
     protected FieldType $fieldType;
 
     /**
@@ -46,11 +57,41 @@ abstract class AbstractFormField implements FormFieldInterface
     }
 
     /**
+     * @return string
+     */
+    public function getClasses(): string
+    {
+        return array_key_exists('classes', $this->options)
+            ? $this->options['classes']
+            : '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRequired(): bool
+    {
+        return array_key_exists('required', $this->options)
+            ? $this->options['required']
+            : false;
+    }
+
+    /**
      * @return FieldType
      */
     public function getFieldType(): FieldType
     {
         return $this->fieldType;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getMaxLength(): ?int
+    {
+        return array_key_exists('maxLength', $this->options)
+            ? $this->options['maxLength']
+            : null;
     }
 
     /**
@@ -63,7 +104,11 @@ abstract class AbstractFormField implements FormFieldInterface
         $this->checkForRequiredOptions();
 
         foreach ($this->options as $key => $option) {
-            if (!in_array($key, $this->validOptions)) {
+            if (!array_key_exists($key, $this->validOptions)) {
+                throw new InvalidFieldOptionException($key);
+            }
+
+            if (gettype($option) !== $this->validOptions[$key]) {
                 throw new InvalidFieldOptionException($key);
             }
         }
@@ -72,13 +117,17 @@ abstract class AbstractFormField implements FormFieldInterface
     /**
      * @return void
      *
-     * @throws MissingFieldOptionException
+     * @throws InvalidFieldOptionException|MissingFieldOptionException
      */
     private function checkForRequiredOptions(): void
     {
-        foreach ($this->requiredOptions as $requiredOption) {
+        foreach ($this->requiredOptions as $requiredOption => $optionType) {
             if (!array_key_exists($requiredOption, $this->options)) {
                 throw new MissingFieldOptionException($requiredOption);
+            }
+
+            if (gettype($this->options[$requiredOption]) !== $optionType) {
+                throw new InvalidFieldOptionException($requiredOption);
             }
         }
     }
