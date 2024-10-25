@@ -17,12 +17,6 @@ class EmailInputField extends AbstractFormField
      */
     public function getHtml(): string
     {
-        return sprintf(
-            '<div><label for="%s">%s</label><input type="email" name="%s" id="%s" /></div>',
-            $this->getId(),
-            $this->getLabel(),
-            $this->getName(),
-            $this->getId()
-        );
+        return $this->getDefaultInputHtml();
     }
 }

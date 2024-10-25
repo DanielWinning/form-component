@@ -17,13 +17,6 @@ class PasswordInputField extends AbstractFormField
      */
     public function getHtml(): string
     {
-        return sprintf(
-            '<div><label for="%s">%s</label><input type="password" name="%s" id="%s" %s/></div>',
-            $this->getId(),
-            $this->getLabel(),
-            $this->getName(),
-            $this->getId(),
-            $this->isRequired() ? 'required' : ''
-        );
+        return $this->getDefaultInputHtml();
     }
 }

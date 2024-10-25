@@ -17,12 +17,6 @@ class TextInputField extends AbstractFormField
      */
     public function getHtml(): string
     {
-        return sprintf(
-            '<div><label for="%s">%s</label><input type="text" name="%s" id="%s" /></div>',
-            $this->getId(),
-            $this->getLabel(),
-            $this->getName(),
-            $this->getId()
-        );
+        return $this->getDefaultInputHtml();
     }
 }

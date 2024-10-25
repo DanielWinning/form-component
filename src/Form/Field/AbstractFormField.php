@@ -135,5 +135,21 @@ abstract class AbstractFormField implements FormFieldInterface
     /**
      * @return string
      */
+    protected function getDefaultInputHtml(): string
+    {
+        return sprintf(
+            '<div><label for="%s">%s</label><input type="%s" name="%s" id="%s" %s /></div>',
+            $this->getId(),
+            $this->getLabel(),
+            $this->getFieldType()->inputType(),
+            $this->getName(),
+            $this->getId(),
+            !empty($this->getClasses()) ? sprintf('class="%s"', $this->getClasses()) : '',
+        );
+    }
+
+    /**
+     * @return string
+     */
     abstract public function getHtml(): string;
 }
