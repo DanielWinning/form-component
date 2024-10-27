@@ -38,4 +38,40 @@ class FormTest extends TestCase
         self::assertIsArray($testForm->getFormFields());
         self::assertInstanceOf(AbstractFormField::class, $testForm->getFormFields()[0]);
     }
+
+    public function testValidation(): void
+    {
+        $loginForm = new LoginForm(null, [
+            'email' => 'test@test.com',
+            'password' => 'password123',
+        ]);
+
+        self::assertTrue($loginForm->validate());
+        self::assertEmpty($loginForm->getErrors());
+
+        $loginForm = new LoginForm(null, [
+            'email' => 'test@test.com',
+            'password' => '',
+        ]);
+
+        self::assertFalse($loginForm->validate());
+        self::assertNotEmpty($loginForm->getErrors());
+        self::assertEquals('Password is required', $loginForm->getErrors()[0]);
+
+        $form = new TestForm(null, [
+            'email' => 'test@test.com',
+        ]);
+
+        self::assertEquals('test@test.com', $form->getData()['email']);
+        self::assertTrue($form->validate());
+
+        $loginForm = new LoginForm(null, [
+            'email' => 'test@test.com',
+            'password' => 'thisisntarealisticlimitationonaloginfieldbutohwell',
+        ]);
+
+        self::assertFalse($loginForm->validate());
+        self::assertNotEmpty($loginForm->getErrors());
+        self::assertEquals('Password is too long, please limit your input to 16 characters or less', $loginForm->getErrors()[0]);
+    }
 }

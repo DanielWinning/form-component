@@ -16,13 +16,17 @@ abstract class AbstractFormField implements FormFieldInterface
     ];
     private array $validOptions = [
         'classes' => 'string',
+        'containerClasses' => 'string',
         'id' => 'string',
         'label' => 'string',
+        'maxLength' => 'integer',
+        'minLength' => 'integer',
         'name' => 'string',
         'required' => 'boolean',
-        'maxLength' => 'integer',
     ];
     protected FieldType $fieldType;
+    protected mixed $value = null;
+    protected array $errors = [];
 
     /**
      * @throws InvalidFieldOptionException|MissingFieldOptionException
@@ -67,6 +71,34 @@ abstract class AbstractFormField implements FormFieldInterface
     }
 
     /**
+     * @return string
+     */
+    public function getContainerClasses(): string
+    {
+        return array_key_exists('containerClasses', $this->options)
+            ? $this->options['containerClasses']
+            : '';
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getValue(): mixed
+    {
+        return $this->value;
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return void
+     */
+    public function setValue(mixed $value): void
+    {
+        $this->value = $value;
+    }
+
+    /**
      * @return bool
      */
     public function isRequired(): bool
@@ -87,10 +119,20 @@ abstract class AbstractFormField implements FormFieldInterface
     /**
      * @return int|null
      */
+    public function getMinLength(): ?int
+    {
+        return array_key_exists('minLength', $this->options)
+            ? (int) $this->options['minLength']
+            : null;
+    }
+
+    /**
+     * @return int|null
+     */
     public function getMaxLength(): ?int
     {
         return array_key_exists('maxLength', $this->options)
-            ? $this->options['maxLength']
+            ? (int) $this->options['maxLength']
             : null;
     }
 
@@ -138,7 +180,8 @@ abstract class AbstractFormField implements FormFieldInterface
     protected function getDefaultInputHtml(): string
     {
         return sprintf(
-            '<div><label for="%s">%s</label><input type="%s" name="%s" id="%s" %s%s/></div>',
+            '<div%s><label for="%s">%s</label><input type="%s" name="%s" id="%s" %s%s%s%s/></div>',
+            !empty($this->getContainerClasses()) ? sprintf(' class="%s"', $this->getContainerClasses()) : '',
             $this->getId(),
             $this->getLabel(),
             $this->getFieldType()->inputType(),
@@ -146,12 +189,49 @@ abstract class AbstractFormField implements FormFieldInterface
             $this->getId(),
             !empty($this->getClasses()) ? sprintf('class="%s" ', $this->getClasses()) : '',
             $this->isRequired() ? 'required ' : '',
-            $this->getMaxLength() ? sprintf('maxlength="%s" ', $this->getMaxLength()) : ''
+            $this->getMinLength() ? sprintf('minlength="%s" ', $this->getMinLength()) : '',
+            $this->getMaxLength() ? sprintf('maxlength="%s" ', $this->getMaxLength()) : '',
         );
+    }
+
+    /**
+     * @return array
+     */
+    public function getErrors(): array
+    {
+        return $this->errors;
     }
 
     /**
      * @return string
      */
     abstract public function getHtml(): string;
+
+    /**
+     * @return bool
+     */
+    public function validate(): bool
+    {
+        if ($this->isRequired() && !$this->getValue()) {
+            $this->errors[] = sprintf('%s is required', $this->getLabel());
+
+            return false;
+        }
+
+        if (!$this->getValue()) {
+            return true;
+        }
+
+        if ($this->getMaxLength() && strlen((string) $this->getValue()) > $this->getMaxLength()) {
+            $this->errors[] = sprintf(
+                '%s is too long, please limit your input to %d characters or less',
+                $this->getLabel(),
+                $this->getMaxLength()
+            );
+
+            return false;
+        }
+
+        return true;
+    }
 }

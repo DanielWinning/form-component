@@ -10,11 +10,13 @@ abstract class AbstractForm implements FormInterface
 {
     protected Engine $templateEngine;
     protected array $formFields = [];
+    protected array $errors = [];
 
-    public function __construct()
+    public function __construct(protected ?string $dataMapClass = null, protected array $data = [])
     {
         $this->templateEngine = new Engine();
         $this->build();
+        $this->populateData();
     }
 
     /**
@@ -29,10 +31,18 @@ abstract class AbstractForm implements FormInterface
         ]);
     }
 
+    /**
+     * @return array
+     */
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
+
     abstract protected function build(): void;
 
     /**
-     * @return AbstractFormField[]
+     * @return array
      */
     public function getFormFields(): array
     {
@@ -47,5 +57,45 @@ abstract class AbstractForm implements FormInterface
     protected function addFormField(AbstractFormField $formField): void
     {
         $this->formFields[] = $formField;
+    }
+
+    /**
+     * @return bool
+     */
+    public function validate(): bool
+    {
+        foreach ($this->formFields as $field) {
+            if (!$field->validate()) {
+                $this->errors = array_merge($this->errors, $field->getErrors());
+            }
+        }
+
+        return empty($this->errors);
+    }
+
+    /**
+     * @return void
+     */
+    private function populateData(): void
+    {
+        foreach ($this->formFields as $field) {
+            if (array_key_exists($field->getName(), $this->data)) {
+                $field->setValue($this->data[$field->getName()]);
+            }
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getData(): array
+    {
+        $data = [];
+
+        foreach ($this->formFields as $field) {
+            $data[$field->getName()] = $field->getValue();
+        }
+
+        return $data;
     }
 }

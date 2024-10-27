@@ -28,6 +28,7 @@ class LoginForm extends AbstractForm
             'id' => 'password',
             'label' => 'Password',
             'required' => true,
+            'maxLength' => 16,
         ]));
     }
 }

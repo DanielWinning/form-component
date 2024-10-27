@@ -113,5 +113,20 @@ class FormFieldTest extends TestCase
 
         self::assertTrue($textInputField->isRequired());
         self::assertEquals(255, $textInputField->getMaxLength());
+        self::assertEquals('', $textInputField->getContainerClasses());
+        self::assertNull($textInputField->getMinLength());
+
+        $textInputField = new TextInputField([
+            'id' => 'name',
+            'label' => 'Name',
+            'name' => 'name',
+            'minLength' => 5,
+            'required' => false,
+            'containerClasses' => 'test-class',
+        ]);
+
+        self::assertEquals('test-class', $textInputField->getContainerClasses());
+        self::assertFalse($textInputField->isRequired());
+        self::assertEquals(5, $textInputField->getMinLength());
     }
 }
