@@ -9,25 +9,23 @@ use Luma\FormComponent\Form\Interface\FormFieldInterface;
 
 abstract class AbstractFormField implements FormFieldInterface
 {
-    private array $requiredOptions = [
+    protected array $requiredOptions = [
         'id' => 'string',
         'label' => 'string',
         'name' => 'string',
     ];
-    private array $validOptions = [
+    protected array $validOptions = [
         'classes' => 'string',
         'containerClasses' => 'string',
-        'id' => 'string',
-        'label' => 'string',
         'maxLength' => 'integer',
         'minLength' => 'integer',
-        'name' => 'string',
         'required' => 'boolean',
         'placeholder' => 'string',
     ];
     protected FieldType $fieldType;
     protected mixed $value = null;
     protected array $errors = [];
+    protected bool $shouldValidate = true;
 
     /**
      * @throws InvalidFieldOptionException|MissingFieldOptionException
@@ -156,12 +154,14 @@ abstract class AbstractFormField implements FormFieldInterface
     {
         $this->checkForRequiredOptions();
 
+        $validOptions = array_merge($this->validOptions, $this->requiredOptions);
+
         foreach ($this->options as $key => $option) {
-            if (!array_key_exists($key, $this->validOptions)) {
+            if (!array_key_exists($key, $validOptions)) {
                 throw new InvalidFieldOptionException($key);
             }
 
-            if (gettype($option) !== $this->validOptions[$key]) {
+            if (gettype($option) !== $validOptions[$key]) {
                 throw new InvalidFieldOptionException($key);
             }
         }
@@ -225,6 +225,10 @@ abstract class AbstractFormField implements FormFieldInterface
      */
     public function validate(): bool
     {
+        if (!$this->shouldValidate) {
+            return true;
+        }
+
         if ($this->isRequired() && !$this->getValue()) {
             $this->errors[] = sprintf('%s is required', $this->getLabel());
 
