@@ -23,6 +23,7 @@ class EmailInputFieldTest extends TestCase
             'id' => 'email-input',
             'required' => true,
             'maxLength' => 255,
+            'placeholder' => 'example@email.com',
         ]);
 
         self::assertEquals('email', $inputField->getName());
@@ -30,6 +31,7 @@ class EmailInputFieldTest extends TestCase
         self::assertEquals('email-input', $inputField->getId());
         self::assertEquals(FieldType::EMAIL, $inputField->getFieldType());
         self::assertEquals('email', $inputField->getFieldType()->inputType());
+        self::assertEquals('example@email.com', $inputField->getPlaceholder());
     }
 
     /**
