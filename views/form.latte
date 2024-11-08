@@ -1,4 +1,4 @@
-<form>
+<form method="{$form->getRequestMethod()}">
     {foreach $form->getFormFields() as $field}
         {$field->getHtml()|noescape}
     {/foreach}

@@ -11,8 +11,9 @@ abstract class AbstractForm implements FormInterface
     protected Engine $templateEngine;
     protected array $formFields = [];
     protected array $errors = [];
+    protected string $method = 'POST';
 
-    public function __construct(protected ?string $dataMapClass = null, protected array $data = [])
+    public function __construct(protected array $data = [])
     {
         $this->templateEngine = new Engine();
         $this->build();
@@ -47,6 +48,14 @@ abstract class AbstractForm implements FormInterface
     public function getFormFields(): array
     {
         return $this->formFields;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRequestMethod(): string
+    {
+        return $this->method;
     }
 
     /**
