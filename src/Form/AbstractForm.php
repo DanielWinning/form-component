@@ -9,6 +9,10 @@ use Luma\FormComponent\Form\Interface\FormInterface;
 abstract class AbstractForm implements FormInterface
 {
     protected Engine $templateEngine;
+
+    /**
+     * @var AbstractFormField[]
+     */
     protected array $formFields = [];
     protected array $errors = [];
     protected string $method = 'POST';
@@ -74,7 +78,7 @@ abstract class AbstractForm implements FormInterface
     public function validate(): bool
     {
         foreach ($this->formFields as $field) {
-            if (!$field->validate()) {
+            if (!$field->validate($this)) {
                 $this->errors = array_merge($this->errors, $field->getErrors());
             }
         }
@@ -99,12 +103,6 @@ abstract class AbstractForm implements FormInterface
      */
     public function getData(): array
     {
-        $data = [];
-
-        foreach ($this->formFields as $field) {
-            $data[$field->getName()] = $field->getValue();
-        }
-
-        return $data;
+        return $this->data;
     }
 }

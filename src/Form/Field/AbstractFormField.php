@@ -2,6 +2,7 @@
 
 namespace Luma\FormComponent\Form\Field;
 
+use Luma\FormComponent\Form\AbstractForm;
 use Luma\FormComponent\Form\Exception\InvalidFieldOptionException;
 use Luma\FormComponent\Form\Exception\MissingFieldOptionException;
 use Luma\FormComponent\Form\FieldType\FieldType;
@@ -21,6 +22,8 @@ abstract class AbstractFormField implements FormFieldInterface
         'minLength' => 'integer',
         'required' => 'boolean',
         'placeholder' => 'string',
+        'validation' => 'object',
+        'validationError' => 'string',
     ];
     protected FieldType $fieldType;
     protected mixed $value = null;
@@ -221,9 +224,11 @@ abstract class AbstractFormField implements FormFieldInterface
     abstract public function getHtml(): string;
 
     /**
+     * @param AbstractForm $form
+     *
      * @return bool
      */
-    public function validate(): bool
+    public function validate(AbstractForm $form): bool
     {
         if (!$this->shouldValidate) {
             return true;
@@ -231,12 +236,29 @@ abstract class AbstractFormField implements FormFieldInterface
 
         if ($this->isRequired() && !$this->getValue()) {
             $this->errors[] = sprintf('%s is required', $this->getLabel());
-
-            return false;
         }
 
-        if (!$this->getValue()) {
+        if (isset($this->options['validation'])) {
+            if (!$this->options['validation']($form, $this)) {
+                $this->errors[] = sprintf(
+                    '%s',
+                    $this->options['validationError']
+                        ? sprintf($this->options['validationError'], $this->getLabel())
+                        : sprintf('Error handling %s', $this->getLabel())
+                );
+            }
+        }
+
+        if (!$this->getValue() && !count($this->errors)) {
             return true;
+        }
+
+        if ($this->getMinLength() && strlen((string) $this->getValue()) < $this->getMinLength()) {
+            $this->errors[] = sprintf(
+                '%s must contain a minimum of %d characters',
+                $this->getLabel(),
+                $this->getMinLength()
+            );
         }
 
         if ($this->getMaxLength() && strlen((string) $this->getValue()) > $this->getMaxLength()) {
@@ -245,7 +267,9 @@ abstract class AbstractFormField implements FormFieldInterface
                 $this->getLabel(),
                 $this->getMaxLength()
             );
+        }
 
+        if (count($this->errors)) {
             return false;
         }
 

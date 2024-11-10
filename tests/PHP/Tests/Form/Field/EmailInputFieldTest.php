@@ -24,6 +24,9 @@ class EmailInputFieldTest extends TestCase
             'required' => true,
             'maxLength' => 255,
             'placeholder' => 'example@email.com',
+            'validation' => function () {
+                return true;
+            }
         ]);
 
         self::assertEquals('email', $inputField->getName());

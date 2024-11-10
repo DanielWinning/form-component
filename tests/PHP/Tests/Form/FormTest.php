@@ -4,6 +4,7 @@ namespace Tests\Tests\Form;
 
 use Luma\FormComponent\Form\AbstractForm;
 use Luma\FormComponent\Form\Field\AbstractFormField;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Tests\Helpers\Form as TestForm;
 use Tests\Helpers\LoginForm;
@@ -24,7 +25,7 @@ class FormTest extends TestCase
     public function testRender(): void
     {
         self::assertIsString((new TestForm())->render());
-        self::assertStringContainsString('<form>', (new TestForm())->render());
+        self::assertStringContainsString('<form method="POST">', (new TestForm())->render());
         self::assertStringContainsString('type="password"', (new LoginForm())->render());
     }
 
@@ -39,39 +40,70 @@ class FormTest extends TestCase
         self::assertInstanceOf(AbstractFormField::class, $testForm->getFormFields()[0]);
     }
 
-    public function testValidation(): void
+    #[DataProvider('validationDataProvider')]
+    public function testValidation(array $formData, int $errorCount, ?string $errorMessage, bool $expectedResult): void
     {
-        $loginForm = new LoginForm(null, [
-            'email' => 'test@test.com',
-            'password' => 'password123',
-        ]);
+        $loginForm = new LoginForm($formData);
 
-        self::assertTrue($loginForm->validate());
-        self::assertEmpty($loginForm->getErrors());
+        self::assertEquals($expectedResult, $loginForm->validate());
+        var_dump($loginForm->getData());
+        self::assertSameSize($formData, $loginForm->getData());
 
-        $loginForm = new LoginForm(null, [
-            'email' => 'test@test.com',
-            'password' => '',
-        ]);
+        if ($errorCount) {
+            self::assertEquals($errorMessage, $loginForm->getErrors()[0]);
+        }
+    }
 
-        self::assertFalse($loginForm->validate());
-        self::assertNotEmpty($loginForm->getErrors());
-        self::assertEquals('Password is required', $loginForm->getErrors()[0]);
-
-        $form = new TestForm(null, [
-            'email' => 'test@test.com',
-        ]);
-
-        self::assertEquals('test@test.com', $form->getData()['email']);
-        self::assertTrue($form->validate());
-
-        $loginForm = new LoginForm(null, [
-            'email' => 'test@test.com',
-            'password' => 'thisisntarealisticlimitationonaloginfieldbutohwell',
-        ]);
-
-        self::assertFalse($loginForm->validate());
-        self::assertNotEmpty($loginForm->getErrors());
-        self::assertEquals('Password is too long, please limit your input to 16 characters or less', $loginForm->getErrors()[0]);
+    /**
+     * @return array[]
+     */
+    public static function validationDataProvider(): array
+    {
+        return [
+            'Required field is not included' => [
+                'formData' => [
+                    'email' => 'test@test.com',
+                ],
+                'errorCount' => 1,
+                'errorMessage' => 'Password is required',
+                'expectedResult' => false,
+            ],
+            'Password is too long' => [
+                'formData' => [
+                    'email' => 'test@test.com',
+                    'password' => 'thisPasswordIsTooLongForThisRestriction',
+                ],
+                'errorCount' => 1,
+                'errorMessage' => 'Password is too long, please limit your input to 16 characters or less',
+                'expectedResult' => false,
+            ],
+            'Password does not meet minimum length requirements' => [
+                'formData' => [
+                    'email' => 'test@test.com',
+                    'password' => 'tEst',
+                ],
+                'errorCount' => 1,
+                'errorMessage' => 'Password must contain a minimum of 6 characters',
+                'expectedResult' => false,
+            ],
+            'Password does not contain upper and lowercase letters' => [
+                'formData' => [
+                    'email' => 'test@test.com',
+                    'password' => 'testing123',
+                ],
+                'errorCount' => 1,
+                'errorMessage' => 'Password must contain upper and lowercase letters',
+                'expectedResult' => false,
+            ],
+            'All fields are valid' => [
+                'formData' => [
+                    'email' => 'test@test.com',
+                    'password' => 'Password123',
+                ],
+                'errorCount' => 0,
+                'errorMessage' => null,
+                'expectedResult' => true,
+            ]
+        ];
     }
 }
