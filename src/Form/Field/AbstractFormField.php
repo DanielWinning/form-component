@@ -2,6 +2,7 @@
 
 namespace Luma\FormComponent\Form\Field;
 
+use Luma\FormComponent\Form\AbstractForm;
 use Luma\FormComponent\Form\Exception\InvalidFieldOptionException;
 use Luma\FormComponent\Form\Exception\MissingFieldOptionException;
 use Luma\FormComponent\Form\FieldType\FieldType;
@@ -9,24 +10,25 @@ use Luma\FormComponent\Form\Interface\FormFieldInterface;
 
 abstract class AbstractFormField implements FormFieldInterface
 {
-    private array $requiredOptions = [
+    protected array $requiredOptions = [
         'id' => 'string',
         'label' => 'string',
         'name' => 'string',
     ];
-    private array $validOptions = [
+    protected array $validOptions = [
         'classes' => 'string',
         'containerClasses' => 'string',
-        'id' => 'string',
-        'label' => 'string',
         'maxLength' => 'integer',
         'minLength' => 'integer',
-        'name' => 'string',
         'required' => 'boolean',
+        'placeholder' => 'string',
+        'validation' => 'object',
+        'validationError' => 'string',
     ];
     protected FieldType $fieldType;
     protected mixed $value = null;
     protected array $errors = [];
+    protected bool $shouldValidate = true;
 
     /**
      * @throws InvalidFieldOptionException|MissingFieldOptionException
@@ -137,6 +139,16 @@ abstract class AbstractFormField implements FormFieldInterface
     }
 
     /**
+     * @return string|null
+     */
+    public function getPlaceholder(): ?string
+    {
+        return array_key_exists('placeholder', $this->options)
+            ? (string) $this->options['placeholder']
+            : null;
+    }
+
+    /**
      * @return void
      *
      * @throws InvalidFieldOptionException|MissingFieldOptionException
@@ -145,12 +157,14 @@ abstract class AbstractFormField implements FormFieldInterface
     {
         $this->checkForRequiredOptions();
 
+        $validOptions = array_merge($this->validOptions, $this->requiredOptions);
+
         foreach ($this->options as $key => $option) {
-            if (!array_key_exists($key, $this->validOptions)) {
+            if (!array_key_exists($key, $validOptions)) {
                 throw new InvalidFieldOptionException($key);
             }
 
-            if (gettype($option) !== $this->validOptions[$key]) {
+            if (gettype($option) !== $validOptions[$key]) {
                 throw new InvalidFieldOptionException($key);
             }
         }
@@ -180,7 +194,7 @@ abstract class AbstractFormField implements FormFieldInterface
     protected function getDefaultInputHtml(): string
     {
         return sprintf(
-            '<div%s><label for="%s">%s</label><input type="%s" name="%s" id="%s" %s%s%s%s%s/></div>',
+            '<div%s><label for="%s">%s</label><input type="%s" name="%s" id="%s" %s%s%s%s%s%s/></div>',
             !empty($this->getContainerClasses()) ? sprintf(' class="%s"', $this->getContainerClasses()) : '',
             $this->getId(),
             $this->getLabel(),
@@ -192,6 +206,7 @@ abstract class AbstractFormField implements FormFieldInterface
             $this->getMinLength() ? sprintf('minlength="%s" ', $this->getMinLength()) : '',
             $this->getMaxLength() ? sprintf('maxlength="%s" ', $this->getMaxLength()) : '',
             $this->getValue() ? sprintf('value="%s"', $this->value) : '',
+            $this->getPlaceholder() ? sprintf('placeholder="%s"', $this->getPlaceholder()) : ''
         );
     }
 
@@ -209,18 +224,41 @@ abstract class AbstractFormField implements FormFieldInterface
     abstract public function getHtml(): string;
 
     /**
+     * @param AbstractForm $form
+     *
      * @return bool
      */
-    public function validate(): bool
+    public function validate(AbstractForm $form): bool
     {
-        if ($this->isRequired() && !$this->getValue()) {
-            $this->errors[] = sprintf('%s is required', $this->getLabel());
-
-            return false;
+        if (!$this->shouldValidate) {
+            return true;
         }
 
-        if (!$this->getValue()) {
+        if ($this->isRequired() && !$this->getValue()) {
+            $this->errors[] = sprintf('%s is required', $this->getLabel());
+        }
+
+        if (isset($this->options['validation'])) {
+            if (!$this->options['validation']($form, $this)) {
+                $this->errors[] = sprintf(
+                    '%s',
+                    $this->options['validationError']
+                        ? sprintf($this->options['validationError'], $this->getLabel())
+                        : sprintf('Error handling %s', $this->getLabel())
+                );
+            }
+        }
+
+        if (!$this->getValue() && !count($this->errors)) {
             return true;
+        }
+
+        if ($this->getMinLength() && strlen((string) $this->getValue()) < $this->getMinLength()) {
+            $this->errors[] = sprintf(
+                '%s must contain a minimum of %d characters',
+                $this->getLabel(),
+                $this->getMinLength()
+            );
         }
 
         if ($this->getMaxLength() && strlen((string) $this->getValue()) > $this->getMaxLength()) {
@@ -229,7 +267,9 @@ abstract class AbstractFormField implements FormFieldInterface
                 $this->getLabel(),
                 $this->getMaxLength()
             );
+        }
 
+        if (count($this->errors)) {
             return false;
         }
 
