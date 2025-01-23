@@ -91,11 +91,18 @@ abstract class AbstractForm implements FormInterface
      */
     private function populateData(): void
     {
+        $data = [];
+
         foreach ($this->formFields as $field) {
             if (array_key_exists($field->getName(), $this->data)) {
                 $field->setValue($this->data[$field->getName()]);
+                $data[$field->getName()] = $field->getValue();
+            } else {
+                $data[$field->getName()] = null;
             }
         }
+
+        $this->data = $data;
     }
 
     /**
@@ -104,5 +111,19 @@ abstract class AbstractForm implements FormInterface
     public function getData(): array
     {
         return $this->data;
+    }
+
+    /**
+     * @param string $fieldName
+     *
+     * @return string|array|null
+     */
+    public function getField(string $fieldName): string|array|null
+    {
+        if (array_key_exists($fieldName, $this->data)) {
+            return $this->data[$fieldName];
+        }
+
+        return null;
     }
 }
