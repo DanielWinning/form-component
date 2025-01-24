@@ -24,7 +24,6 @@ class FormTest extends TestCase
      */
     public function testRender(): void
     {
-        self::assertIsString((new TestForm())->render());
         self::assertStringContainsString('<form method="POST">', (new TestForm())->render());
         self::assertStringContainsString('type="password"', (new LoginForm())->render());
     }
@@ -36,7 +35,6 @@ class FormTest extends TestCase
     {
         $testForm = new TestForm();
 
-        self::assertIsArray($testForm->getFormFields());
         self::assertInstanceOf(AbstractFormField::class, $testForm->getFormFields()[0]);
     }
 
