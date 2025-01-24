@@ -4,6 +4,7 @@ namespace Luma\FormComponent\Form;
 
 use Latte\Engine;
 use Luma\FormComponent\Form\Field\AbstractFormField;
+use Luma\FormComponent\Form\Field\SubmitButton;
 use Luma\FormComponent\Form\Interface\FormInterface;
 
 abstract class AbstractForm implements FormInterface
@@ -94,6 +95,10 @@ abstract class AbstractForm implements FormInterface
         $data = [];
 
         foreach ($this->formFields as $field) {
+            if ($field instanceof SubmitButton) {
+                continue;
+            }
+
             if (array_key_exists($field->getName(), $this->data)) {
                 $field->setValue($this->data[$field->getName()]);
                 $data[$field->getName()] = $field->getValue();
