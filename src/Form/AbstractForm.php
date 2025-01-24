@@ -4,6 +4,7 @@ namespace Luma\FormComponent\Form;
 
 use Latte\Engine;
 use Luma\FormComponent\Form\Field\AbstractFormField;
+use Luma\FormComponent\Form\Field\SubmitButton;
 use Luma\FormComponent\Form\Interface\FormInterface;
 
 abstract class AbstractForm implements FormInterface
@@ -14,9 +15,15 @@ abstract class AbstractForm implements FormInterface
      * @var AbstractFormField[]
      */
     protected array $formFields = [];
+    /**
+     * @var array<int, string>
+     */
     protected array $errors = [];
     protected string $method = 'POST';
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __construct(protected array $data = [])
     {
         $this->templateEngine = new Engine();
@@ -37,7 +44,7 @@ abstract class AbstractForm implements FormInterface
     }
 
     /**
-     * @return array
+     * @return array<int, string>
      */
     public function getErrors(): array
     {
@@ -47,7 +54,7 @@ abstract class AbstractForm implements FormInterface
     abstract protected function build(): void;
 
     /**
-     * @return array
+     * @return array<int, AbstractFormField>
      */
     public function getFormFields(): array
     {
@@ -91,18 +98,43 @@ abstract class AbstractForm implements FormInterface
      */
     private function populateData(): void
     {
+        $data = [];
+
         foreach ($this->formFields as $field) {
+            if ($field instanceof SubmitButton) {
+                continue;
+            }
+
             if (array_key_exists($field->getName(), $this->data)) {
                 $field->setValue($this->data[$field->getName()]);
+                $data[$field->getName()] = $field->getValue();
+            } else {
+                $data[$field->getName()] = null;
             }
         }
+
+        $this->data = $data;
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     public function getData(): array
     {
         return $this->data;
+    }
+
+    /**
+     * @param string $fieldName
+     *
+     * @return string|array<string, string>|null
+     */
+    public function getField(string $fieldName): string|array|null
+    {
+        if (array_key_exists($fieldName, $this->data)) {
+            return $this->data[$fieldName];
+        }
+
+        return null;
     }
 }

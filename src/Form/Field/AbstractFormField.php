@@ -10,11 +10,17 @@ use Luma\FormComponent\Form\Interface\FormFieldInterface;
 
 abstract class AbstractFormField implements FormFieldInterface
 {
+    /**
+     * @var array<string, string>
+     */
     protected array $requiredOptions = [
         'id' => 'string',
         'label' => 'string',
         'name' => 'string',
     ];
+    /**
+     * @var array<string, string>
+     */
     protected array $validOptions = [
         'classes' => 'string',
         'containerClasses' => 'string',
@@ -27,10 +33,16 @@ abstract class AbstractFormField implements FormFieldInterface
     ];
     protected FieldType $fieldType;
     protected mixed $value = null;
+
+    /**
+     * @var array<int, string>
+     */
     protected array $errors = [];
     protected bool $shouldValidate = true;
 
     /**
+     * @param array<string, string|int|bool|object> $options
+     *
      * @throws InvalidFieldOptionException|MissingFieldOptionException
      */
     public function __construct(protected array $options)
@@ -211,7 +223,7 @@ abstract class AbstractFormField implements FormFieldInterface
     }
 
     /**
-     * @return array
+     * @return array<int, string>
      */
     public function getErrors(): array
     {

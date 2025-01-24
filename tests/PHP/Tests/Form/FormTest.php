@@ -24,7 +24,6 @@ class FormTest extends TestCase
      */
     public function testRender(): void
     {
-        self::assertIsString((new TestForm())->render());
         self::assertStringContainsString('<form method="POST">', (new TestForm())->render());
         self::assertStringContainsString('type="password"', (new LoginForm())->render());
     }
@@ -36,18 +35,23 @@ class FormTest extends TestCase
     {
         $testForm = new TestForm();
 
-        self::assertIsArray($testForm->getFormFields());
         self::assertInstanceOf(AbstractFormField::class, $testForm->getFormFields()[0]);
     }
 
+    /**
+     * @param array<string, int|string> $formData
+     * @param int $errorCount
+     * @param string|null $errorMessage
+     * @param bool $expectedResult
+     *
+     * @return void
+     */
     #[DataProvider('validationDataProvider')]
     public function testValidation(array $formData, int $errorCount, ?string $errorMessage, bool $expectedResult): void
     {
         $loginForm = new LoginForm($formData);
 
         self::assertEquals($expectedResult, $loginForm->validate());
-        var_dump($loginForm->getData());
-        self::assertSameSize($formData, $loginForm->getData());
 
         if ($errorCount) {
             self::assertEquals($errorMessage, $loginForm->getErrors()[0]);
@@ -55,7 +59,98 @@ class FormTest extends TestCase
     }
 
     /**
-     * @return array[]
+     * @param array<string, string> $data
+     * @param array<string, string|null> $expected
+     *
+     * @return void
+     */
+    #[DataProvider('getDataDataProvider')]
+    public function testGetData(array $data, array $expected): void
+    {
+        $loginForm = new LoginForm($data);
+
+        self::assertEquals($expected, $loginForm->getData());
+    }
+
+    /**
+     * @param array<string, string> $data
+     * @param string $fieldName
+     * @param string|null $expected
+     *
+     * @return void
+     */
+    #[DataProvider('getFieldDataProvider')]
+    public function testGetField(array $data, string $fieldName, ?string $expected): void
+    {
+        $loginForm = new LoginForm($data);
+
+        self::assertEquals($expected, $loginForm->getField($fieldName));
+    }
+
+    /**
+     * @return array<string, array<string, string|null|array<string, string>>>
+     */
+    public static function getFieldDataProvider(): array
+    {
+        return [
+            'Empty form data' => [
+                'data' => [],
+                'fieldName' => 'email',
+                'expected' => null,
+            ],
+            'Submitted form data' => [
+                'data' => [
+                    'email' => 'test@example.com',
+                    'password' => 'password',
+                ],
+                'fieldName' => 'email',
+                'expected' => 'test@example.com',
+            ],
+            'Requesting non-existent form field' => [
+                'data' => [
+                    'email' => 'test@example.com',
+                    'password' => 'password',
+                ],
+                'fieldName' => 'customer',
+                'expected' => null,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, array<string, string|null>>>
+     */
+    public static function getDataDataProvider(): array
+    {
+        return [
+            'Submitted with unrelated fields' => [
+                'data' => [
+                    'email' => 'test@test.com',
+                    'customer' => 'Test Customer',
+                ],
+                'expected' => [
+                    'email' => 'test@test.com',
+                    'password' => null,
+                    'optional' => null,
+                ],
+            ],
+            'Submitted with all required fields' => [
+                'data' => [
+                    'email' => 'test@test.com',
+                    'password' => 'password1234',
+                    'optional' => 'test',
+                ],
+                'expected' => [
+                    'email' => 'test@test.com',
+                    'password' => 'password1234',
+                    'optional' => 'test',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, array<string, string>|int|string|bool|null>>
      */
     public static function validationDataProvider(): array
     {
