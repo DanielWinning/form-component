@@ -15,9 +15,15 @@ abstract class AbstractForm implements FormInterface
      * @var AbstractFormField[]
      */
     protected array $formFields = [];
+    /**
+     * @var array<int, string>
+     */
     protected array $errors = [];
     protected string $method = 'POST';
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __construct(protected array $data = [])
     {
         $this->templateEngine = new Engine();
@@ -38,7 +44,7 @@ abstract class AbstractForm implements FormInterface
     }
 
     /**
-     * @return array
+     * @return array<int, string>
      */
     public function getErrors(): array
     {
@@ -48,7 +54,7 @@ abstract class AbstractForm implements FormInterface
     abstract protected function build(): void;
 
     /**
-     * @return array
+     * @return array<int, AbstractFormField>
      */
     public function getFormFields(): array
     {
@@ -111,7 +117,7 @@ abstract class AbstractForm implements FormInterface
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     public function getData(): array
     {
@@ -121,7 +127,7 @@ abstract class AbstractForm implements FormInterface
     /**
      * @param string $fieldName
      *
-     * @return string|array|null
+     * @return string|array<string, string>|null
      */
     public function getField(string $fieldName): string|array|null
     {

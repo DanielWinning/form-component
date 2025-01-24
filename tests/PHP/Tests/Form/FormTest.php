@@ -59,8 +59,8 @@ class FormTest extends TestCase
     }
 
     /**
-     * @param array $data
-     * @param array $expected
+     * @param array<string, string> $data
+     * @param array<string, string|null> $expected
      *
      * @return void
      */
@@ -73,7 +73,7 @@ class FormTest extends TestCase
     }
 
     /**
-     * @param array $data
+     * @param array<string, string> $data
      * @param string $fieldName
      * @param string|null $expected
      *
@@ -88,7 +88,7 @@ class FormTest extends TestCase
     }
 
     /**
-     * @return array<string, array>
+     * @return array<string, array<string, string|null|array<string, string>>>
      */
     public static function getFieldDataProvider(): array
     {
@@ -118,7 +118,7 @@ class FormTest extends TestCase
     }
 
     /**
-     * @return array
+     * @return array<string, array<string, array<string, string|null>>>
      */
     public static function getDataDataProvider(): array
     {
@@ -150,7 +150,7 @@ class FormTest extends TestCase
     }
 
     /**
-     * @return array[]
+     * @return array<string, array<string, array<string, string>|int|string|bool|null>>
      */
     public static function validationDataProvider(): array
     {

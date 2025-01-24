@@ -4,6 +4,9 @@ namespace Luma\FormComponent\Form\Field;
 
 class SubmitButton extends AbstractFormField
 {
+    /**
+     * @var array<string, string>
+     */
     protected array $validOptions = [
         'classes' => 'string',
         'containerClasses' => 'string',
